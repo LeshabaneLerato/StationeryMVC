@@ -21,8 +21,8 @@ namespace StationeryMVC.Models
         [Range(0.01, 10000)]
         public decimal Price { get; set; }
 
-        // New property for image URL/path
-        [Display(Name = "Image URL")]
-        public string ImageUrl { get; set; } = "/images/default.png"; // default image
+        // Stores relative path of uploaded image
+        [Display(Name = "Image")]
+        public string ImageUrl { get; set; } = "/images/default.png";
     }
 }

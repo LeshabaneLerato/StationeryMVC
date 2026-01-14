@@ -11,7 +11,14 @@ namespace StationeryMVC.Controllers
         private static List<StationeryItem> items = new()
         {
             new StationeryItem { Id = 1, Name = "Pen", Category = "Writing", Quantity = 10, Price = 5 },
-            new StationeryItem { Id = 2, Name = "Notebook", Category = "Books", Quantity = 5, Price = 25 }
+            new StationeryItem { Id = 2, Name = "Notebook", Category = "Books", Quantity = 5, Price = 25 },
+            new StationeryItem { Id = 2, Name = "Pocket Files", Category = "Books", Quantity = 6, Price = 30 },
+            new StationeryItem { Id = 2, Name = "Pencil", Category = "Writing", Quantity = 10, Price = 2 },
+            new StationeryItem { Id = 2, Name = "Scissor", Category = "Other", Quantity = 4, Price = 15 },
+            new StationeryItem { Id = 2, Name = "Chart", Category = "Art", Quantity = 10, Price = 100 },
+            new StationeryItem { Id = 2, Name = "Pencil case", Category = "Other", Quantity = 2, Price = 50 },
+
+
         };
 
         // Categories
@@ -78,27 +85,45 @@ namespace StationeryMVC.Controllers
 
         // POST: /Stationery/Edit
         [HttpPost]
-        public IActionResult Edit(StationeryItem item)
+        public IActionResult Create(StationeryItem item, IFormFile imageFile)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = categories; // important!
+                ViewBag.Categories = categories;
                 return View(item);
             }
 
-            var existing = items.FirstOrDefault(i => i.Id == item.Id);
-            if (existing == null)
-                return NotFound();
+            // Handle image upload
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+                Directory.CreateDirectory(uploadsFolder);
 
-            existing.Name = item.Name;
-            existing.Category = item.Category;
-            existing.Quantity = item.Quantity;
-            existing.Price = item.Price;
+                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+                string filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    imageFile.CopyTo(fileStream);
+                }
+
+                item.ImageUrl = "/images/" + fileName;
+            }
+
+            item.Id = items.Any() ? items.Max(i => i.Id) + 1 : 1;
+            items.Add(item);
 
             return RedirectToAction(nameof(Index));
         }
 
-       
+        private readonly IWebHostEnvironment _env;
+        public StationeryController(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
+
+
+
         // GET DELETE - confirmation
         public IActionResult Delete(int id)
         {
