@@ -1,52 +1,49 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using StationeryMVC.Models;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace StationeryMVC.Controllers
 {
     public class StationeryController : Controller
     {
+        private readonly IWebHostEnvironment _env;
+
+        public StationeryController(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
+
         // In-memory stationery items
         private static List<StationeryItem> items = new()
         {
-            new StationeryItem { Id = 1, Name = "Pen", Category = "Writing", Quantity = 10, Price = 5 },
-            new StationeryItem { Id = 2, Name = "Notebook", Category = "Books", Quantity = 5, Price = 25 },
-            new StationeryItem { Id = 2, Name = "Pocket Files", Category = "Books", Quantity = 6, Price = 30 },
-            new StationeryItem { Id = 2, Name = "Pencil", Category = "Writing", Quantity = 10, Price = 2 },
-            new StationeryItem { Id = 2, Name = "Scissor", Category = "Other", Quantity = 4, Price = 15 },
-            new StationeryItem { Id = 2, Name = "Chart", Category = "Art", Quantity = 10, Price = 100 },
-            new StationeryItem { Id = 2, Name = "Pencil case", Category = "Other", Quantity = 2, Price = 50 },
-
-
+            new StationeryItem { Id = 1, Name = "Pen", Category = "Writing", Quantity = 10, Price = 5, ImageUrl = "/images/default.png" },
+            new StationeryItem { Id = 2, Name = "Notebook", Category = "Books", Quantity = 5, Price = 25, ImageUrl = "/images/default.png" },
+            new StationeryItem { Id = 3, Name = "Pencil", Category = "Writing", Quantity = 10, Price = 2, ImageUrl = "/images/default.png" }
         };
 
-        // Categories
         private static readonly List<string> categories = new()
         {
-            "Writing",
-            "Books",
-            "Office",
-            "Art",
-            "Other"
+            "Writing", "Books", "Office", "Art", "Other"
         };
 
-        // INDEX - List with Search
+        // INDEX
         public IActionResult Index(string searchString, string category)
         {
-            var filteredItems = items.AsQueryable();
+            var filtered = items.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchString))
-                filteredItems = filteredItems.Where(i => i.Name.Contains(searchString, System.StringComparison.OrdinalIgnoreCase));
+                filtered = filtered.Where(i => i.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(category))
-                filteredItems = filteredItems.Where(i => i.Category == category);
+                filtered = filtered.Where(i => i.Category == category);
 
             ViewBag.Categories = categories;
-            ViewBag.SearchString = searchString;
-            ViewBag.SelectedCategory = category;
-
-            return View(filteredItems.ToList());
+            return View(filtered.ToList());
         }
 
         // GET CREATE
@@ -56,35 +53,9 @@ namespace StationeryMVC.Controllers
             return View();
         }
 
-        // POST CREATE
+        // POST CREATE (IMAGE UPLOAD WORKS HERE)
         [HttpPost]
-        public IActionResult Create(StationeryItem item)
-        {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Categories = categories;
-                return View(item);
-            }
-
-            item.Id = items.Any() ? items.Max(i => i.Id) + 1 : 1;
-            items.Add(item);
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET EDIT
-        // GET: /Stationery/Edit/{id}
-        public IActionResult Edit(int id)
-        {
-            var item = items.FirstOrDefault(i => i.Id == id);
-            if (item == null)
-                return NotFound();
-
-            ViewBag.Categories = categories; // important!
-            return View(item);
-        }
-
-        // POST: /Stationery/Edit
-        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(StationeryItem item, IFormFile imageFile)
         {
             if (!ModelState.IsValid)
@@ -93,21 +64,22 @@ namespace StationeryMVC.Controllers
                 return View(item);
             }
 
-            // Handle image upload
             if (imageFile != null && imageFile.Length > 0)
             {
-                string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
-                Directory.CreateDirectory(uploadsFolder);
+                string folder = Path.Combine(_env.WebRootPath, "images");
+                Directory.CreateDirectory(folder);
 
-                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
-                string filePath = Path.Combine(uploadsFolder, fileName);
+                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
+                string filePath = Path.Combine(folder, fileName);
 
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    imageFile.CopyTo(fileStream);
-                }
+                using var stream = new FileStream(filePath, FileMode.Create);
+                imageFile.CopyTo(stream);
 
                 item.ImageUrl = "/images/" + fileName;
+            }
+            else
+            {
+                item.ImageUrl = "/images/default.png";
             }
 
             item.Id = items.Any() ? items.Max(i => i.Id) + 1 : 1;
@@ -116,15 +88,47 @@ namespace StationeryMVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private readonly IWebHostEnvironment _env;
-        public StationeryController(IWebHostEnvironment env)
+        // GET EDIT
+        public IActionResult Edit(int id)
         {
-            _env = env;
+            var item = items.FirstOrDefault(i => i.Id == id);
+            if (item == null) return NotFound();
+
+            ViewBag.Categories = categories;
+            return View(item);
         }
 
+        // POST EDIT (IMAGE UPDATE)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(StationeryItem item, IFormFile imageFile)
+        {
+            var existing = items.FirstOrDefault(i => i.Id == item.Id);
+            if (existing == null) return NotFound();
 
+            existing.Name = item.Name;
+            existing.Category = item.Category;
+            existing.Quantity = item.Quantity;
+            existing.Price = item.Price;
 
-        // GET DELETE - confirmation
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                string folder = Path.Combine(_env.WebRootPath, "images");
+                Directory.CreateDirectory(folder);
+
+                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
+                string filePath = Path.Combine(folder, fileName);
+
+                using var stream = new FileStream(filePath, FileMode.Create);
+                imageFile.CopyTo(stream);
+
+                existing.ImageUrl = "/images/" + fileName;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET DELETE
         public IActionResult Delete(int id)
         {
             var item = items.FirstOrDefault(i => i.Id == id);
@@ -138,8 +142,7 @@ namespace StationeryMVC.Controllers
         public IActionResult DeleteConfirmed(int id)
         {
             var item = items.FirstOrDefault(i => i.Id == id);
-            if (item != null)
-                items.Remove(item);
+            if (item != null) items.Remove(item);
 
             return RedirectToAction(nameof(Index));
         }
@@ -149,8 +152,7 @@ namespace StationeryMVC.Controllers
         {
             ViewBag.TotalItems = items.Count;
             ViewBag.TotalStock = items.Sum(i => i.Quantity);
-            ViewBag.CategoryCount = items.GroupBy(i => i.Category).Count();
-
+            ViewBag.CategoryCount = items.Select(i => i.Category).Distinct().Count();
             return View();
         }
     }

@@ -3,7 +3,8 @@
 
 <h2 class="mb-4">✏️ Edit Stationery Item</h2>
 
-<form asp-action="Edit" method="post" class="card p-4 shadow-sm">
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
     <input type="hidden" asp-for="Id" />
@@ -34,10 +35,11 @@
         <span asp-validation-for="Price" class="text-danger"></span>
     </div>
     <div class="mb-3">
-        <label class="form-label">Image URL</label>
-        <input asp-for="ImageUrl" class="form-control" placeholder="/images/item.png" />
-        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+        <label class="form-label">Upload Image</label>
+        <input type="file" name="imageFile" class="form-control" />
+        <small class="form-text text-muted">Optional. Leave blank to use default image.</small>
     </div>
+
 
 
     <div class="mt-3">
