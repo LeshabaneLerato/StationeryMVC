@@ -65,26 +65,31 @@ namespace StationeryMVC.Controllers
         }
 
         // GET EDIT
+        // GET: /Stationery/Edit/{id}
         public IActionResult Edit(int id)
         {
             var item = items.FirstOrDefault(i => i.Id == id);
-            if (item == null) return NotFound();
+            if (item == null)
+                return NotFound();
 
-            ViewBag.Categories = categories;
+            ViewBag.Categories = categories; // important!
             return View(item);
         }
 
-        // POST EDIT
+        // POST: /Stationery/Edit
         [HttpPost]
         public IActionResult Edit(StationeryItem item)
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = categories;
+                ViewBag.Categories = categories; // important!
                 return View(item);
             }
 
-            var existing = items.First(i => i.Id == item.Id);
+            var existing = items.FirstOrDefault(i => i.Id == item.Id);
+            if (existing == null)
+                return NotFound();
+
             existing.Name = item.Name;
             existing.Category = item.Category;
             existing.Quantity = item.Quantity;
@@ -93,6 +98,7 @@ namespace StationeryMVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+       
         // GET DELETE - confirmation
         public IActionResult Delete(int id)
         {
