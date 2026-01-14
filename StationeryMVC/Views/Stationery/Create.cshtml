@@ -1,0 +1,16 @@
+﻿@model StationeryMVC.Models.StationeryItem
+
+<h2>Add Item</h2>
+
+<form asp-action="Create" method="post">
+    <label>Name</label>
+    <input asp-for="Name" />
+
+    <label>Quantity</label>
+    <input asp-for="Quantity" />
+
+    <label>Price</label>
+    <input asp-for="Price" />
+
+    <button type="submit">Save</button>
+</form>
