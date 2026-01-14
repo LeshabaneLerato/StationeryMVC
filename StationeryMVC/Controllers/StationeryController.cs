@@ -1,159 +1,92 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using StationeryMVC.Data;
 using StationeryMVC.Models;
-using System;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Hosting; // For IWebHostEnvironment
 using System.IO;
-using System.Linq;
+using Microsoft.AspNetCore.Http;
+
 
 namespace StationeryMVC.Controllers
 {
     public class StationeryController : Controller
     {
-        private readonly IWebHostEnvironment _env;
+        private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public StationeryController(IWebHostEnvironment env)
+        public StationeryController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
-            _env = env;
+            _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
-        // In-memory stationery items
-        private static List<StationeryItem> items = new()
-        {
-            new StationeryItem { Id = 1, Name = "Pen", Category = "Writing", Quantity = 10, Price = 5, ImageUrl = "/images/default.png" },
-            new StationeryItem { Id = 2, Name = "Notebook", Category = "Books", Quantity = 5, Price = 25, ImageUrl = "/images/default.png" },
-            new StationeryItem { Id = 3, Name = "Pencil", Category = "Writing", Quantity = 10, Price = 2, ImageUrl = "/images/default.png" }
-        };
-
-        private static readonly List<string> categories = new()
-        {
-            "Writing", "Books", "Office", "Art", "Other"
-        };
-
-        // INDEX
-        public IActionResult Index(string searchString, string category)
-        {
-            var filtered = items.AsQueryable();
-
-            if (!string.IsNullOrEmpty(searchString))
-                filtered = filtered.Where(i => i.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase));
-
-            if (!string.IsNullOrEmpty(category))
-                filtered = filtered.Where(i => i.Category == category);
-
-            ViewBag.Categories = categories;
-            return View(filtered.ToList());
-        }
-
-        // GET CREATE
+        // GET: Show Create Form
         public IActionResult Create()
         {
-            ViewBag.Categories = categories;
+            PopulateCategories();
             return View();
         }
 
-        // POST CREATE (IMAGE UPLOAD WORKS HERE)
+        // POST: Handle Form Submission
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(StationeryItem item, IFormFile imageFile)
         {
-            if (!ModelState.IsValid)
+            PopulateCategories(); // Repopulate for validation errors
+
+            if (ModelState.IsValid)
             {
-                ViewBag.Categories = categories;
-                return View(item);
+                // Handle image upload
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images");
+                    Directory.CreateDirectory(uploadsFolder); // Ensure folder exists
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        imageFile.CopyTo(fileStream);
+                    }
+
+                    item.ImageUrl = "/images/" + uniqueFileName;
+                }
+                else
+                {
+                    item.ImageUrl = "/images/default.png"; // default image
+                }
+
+                _context.StationeryItems.Add(item);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(Index));
             }
-
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                string folder = Path.Combine(_env.WebRootPath, "images");
-                Directory.CreateDirectory(folder);
-
-                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
-                string filePath = Path.Combine(folder, fileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                imageFile.CopyTo(stream);
-
-                item.ImageUrl = "/images/" + fileName;
-            }
-            else
-            {
-                item.ImageUrl = "/images/default.png";
-            }
-
-            item.Id = items.Any() ? items.Max(i => i.Id) + 1 : 1;
-            items.Add(item);
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET EDIT
-        public IActionResult Edit(int id)
-        {
-            var item = items.FirstOrDefault(i => i.Id == id);
-            if (item == null) return NotFound();
-
-            ViewBag.Categories = categories;
-            return View(item);
-        }
-
-        // POST EDIT (IMAGE UPDATE)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(StationeryItem item, IFormFile imageFile)
-        {
-            var existing = items.FirstOrDefault(i => i.Id == item.Id);
-            if (existing == null) return NotFound();
-
-            existing.Name = item.Name;
-            existing.Category = item.Category;
-            existing.Quantity = item.Quantity;
-            existing.Price = item.Price;
-
-            if (imageFile != null && imageFile.Length > 0)
-            {
-                string folder = Path.Combine(_env.WebRootPath, "images");
-                Directory.CreateDirectory(folder);
-
-                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
-                string filePath = Path.Combine(folder, fileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                imageFile.CopyTo(stream);
-
-                existing.ImageUrl = "/images/" + fileName;
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET DELETE
-        public IActionResult Delete(int id)
-        {
-            var item = items.FirstOrDefault(i => i.Id == id);
-            if (item == null) return NotFound();
 
             return View(item);
         }
 
-        // POST DELETE
-        [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        // GET: List all items
+        public IActionResult Index()
         {
-            var item = items.FirstOrDefault(i => i.Id == id);
-            if (item != null) items.Remove(item);
-
-            return RedirectToAction(nameof(Index));
+            var items = _context.StationeryItems.ToList();
+            return View(items);
         }
 
-        // DASHBOARD
-        public IActionResult Dashboard()
+        // Helper method to populate categories
+        private void PopulateCategories()
         {
-            ViewBag.TotalItems = items.Count;
-            ViewBag.TotalStock = items.Sum(i => i.Quantity);
-            ViewBag.CategoryCount = items.Select(i => i.Category).Distinct().Count();
-            return View();
+            var categories = new List<string>
+            {
+                "Pocket File",
+                "Scissor",
+                "Pencil",
+                "Exercise Book",
+                "Pencil Case",
+                "Ruler",
+                "Crayon"
+            };
+
+            ViewBag.Categories = new SelectList(categories);
         }
     }
 }

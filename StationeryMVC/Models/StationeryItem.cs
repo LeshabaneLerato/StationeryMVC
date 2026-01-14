@@ -23,6 +23,6 @@ namespace StationeryMVC.Models
 
         // Stores relative path of uploaded image
         [Display(Name = "Image")]
-        public string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = "/images/default.png";
     }
 }
