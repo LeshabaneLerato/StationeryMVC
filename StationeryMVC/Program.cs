@@ -1,7 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using StationeryMVC.Data;
+using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -10,7 +15,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -25,5 +29,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Stationery}/{action=Index}/{id?}");
+
+// Add this before app.Run()
+RotativaConfiguration.Setup("wwwroot", "Rotativa");
 
 app.Run();
