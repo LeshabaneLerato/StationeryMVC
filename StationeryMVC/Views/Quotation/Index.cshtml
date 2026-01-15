@@ -1,0 +1,32 @@
+﻿@model IEnumerable<StationeryMVC.Models.Quotation>
+@using System.Globalization
+
+<h2>All Quotations</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var q in Model)
+        {
+            <tr>
+                <td>@q.Id</td>
+                <td>@q.CustomerName</td>
+                <td>@q.Date.ToString("dd/MM/yyyy")</td>
+                <td>@q.TotalAmount.ToString("C", CultureInfo.GetCultureInfo("en-ZA"))</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@q.Id" class="btn btn-sm btn-primary">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-success mt-3">New Quotation</a>
