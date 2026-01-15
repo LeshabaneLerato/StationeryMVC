@@ -34,3 +34,38 @@ else
         }
     </div>
 }
+
+
+<h2 class="mb-4">📊 Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 mb-3 text-center">
+            <h5>Total Items</h5>
+            <h3>@ViewBag.TotalItems</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 mb-3 text-center">
+            <h5>Total Quantity</h5>
+            <h3>@ViewBag.TotalQuantity</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 mb-3 text-center">
+            <h5>Total Categories</h5>
+            <h3>@ViewBag.TotalCategories</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 mb-3 text-center">
+            <h5>Total Stock Value</h5>
+            <h3>
+                @ViewBag.TotalValue.ToString("C", new CultureInfo("en-ZA"))
+            </h3>
+        </div>
+    </div>
+</div>
