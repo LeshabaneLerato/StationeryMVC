@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using StationeryMVC.Data;
 using StationeryMVC.Models;
 using System.Linq;
+using Rotativa.AspNetCore;
 
 namespace StationeryMVC.Controllers
 {
@@ -88,5 +89,27 @@ namespace StationeryMVC.Controllers
                 .ToList();
             return View(quotations);
         }
+        
+
+public IActionResult GeneratePdf(int id)
+    {
+        var quotation = _context.Quotations
+            .Include(q => q.Items)
+            .ThenInclude(i => i.StationeryItem)
+            .FirstOrDefault(q => q.Id == id);
+
+        if (quotation == null)
+            return NotFound();
+
+        // Use the Details view to render PDF
+        return new ViewAsPdf("Details", quotation)
+        {
+            FileName = $"Quotation_{quotation.Id}.pdf",
+            PageSize = Rotativa.AspNetCore.Options.Size.A4,
+            PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+            PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
+        };
     }
+
+}
 }
