@@ -1,6 +1,10 @@
 ﻿@model StationeryMVC.Models.Quotation
 @using System.Globalization
 
+<a asp-action="GeneratePdf" asp-route-id="@Model.Id" class="btn btn-success mb-3">
+    📄 Download PDF
+</a>
+
 <h2>Quotation for @Model.CustomerName</h2>
 <p>Date: @Model.Date.ToString("dd/MM/yyyy")</p>
 
@@ -31,3 +35,5 @@
 </table>
 
 <a asp-action="Index" class="btn btn-secondary">Back to Quotations</a>
+
+
