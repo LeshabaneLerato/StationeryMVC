@@ -11,7 +11,7 @@ namespace StationeryMVC.Models
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Category is required")]
-        public string Category { get; set; }
+        public string Category { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Quantity is required")]
         [Range(1, 1000)]

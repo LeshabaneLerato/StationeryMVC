@@ -1,0 +1,44 @@
+﻿@model StationeryMVC.Models.Quotation
+@using System.Globalization
+
+<a asp-action="GeneratePdf" asp-route-id="@Model.Id" class="btn btn-success mb-3">
+    📄 Download PDF
+</a>
+
+<h2>Quotation for @Model.CustomerName</h2>
+<p>Date: @Model.Date.ToString("dd/MM/yyyy")</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.StationeryItem.Name</td>
+                <td>@item.Quantity</td>
+                <td>@item.Price.ToString("C", CultureInfo.GetCultureInfo("en-ZA"))</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="2">Total</th>
+            <th>@Model.TotalAmount.ToString("C", CultureInfo.GetCultureInfo("en-ZA"))</th>
+        </tr>
+    </tfoot>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">Back to Quotations</a>
+
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}

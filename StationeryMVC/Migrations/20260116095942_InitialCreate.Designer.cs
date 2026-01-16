@@ -12,8 +12,8 @@ using StationeryMVC.Data;
 namespace StationeryMVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260115090321_AddQuotation")]
-    partial class AddQuotation
+    [Migration("20260116095942_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

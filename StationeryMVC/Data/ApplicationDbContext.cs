@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StationeryMVC.Models;
-using System.Collections.Generic;
 
 namespace StationeryMVC.Data
 {
@@ -9,14 +8,12 @@ namespace StationeryMVC.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+            // Automatically create the database and tables if they do not exist
+            Database.EnsureCreated();
         }
 
-        // This tells EF Core to create a table for StationeryItem
         public DbSet<StationeryItem> StationeryItems { get; set; }
-    
-
-public DbSet<Quotation> Quotations { get; set; }
-public DbSet<QuotationItem> QuotationItems { get; set; }
-
+        public DbSet<Quotation> Quotations { get; set; }
+        public DbSet<QuotationItem> QuotationItems { get; set; }
     }
 }
