@@ -15,5 +15,7 @@ namespace StationeryMVC.Data
         public DbSet<StationeryItem> StationeryItems { get; set; }
         public DbSet<Quotation> Quotations { get; set; }
         public DbSet<QuotationItem> QuotationItems { get; set; }
+        public DbSet<AppSettings> AppSettings { get; set; }
+
     }
 }
