@@ -1,0 +1,7 @@
+﻿Browser(UI)
+   |
+   v
+Controllers ----> Models <---- Database
+   |
+   v
+Views
