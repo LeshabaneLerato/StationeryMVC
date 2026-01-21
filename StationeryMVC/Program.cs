@@ -11,13 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 // ====================
 builder.Services.AddControllersWithViews();
 
-// ✅ ApplicationDbContext (SINGLE DB)
+// ✅ Add EF Core with SQL Server
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// ✅ STEP 2.3 (PART A): ADD IDENTITY WITH ROLES
+// ✅ Add Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -25,22 +24,16 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// ====================
-// BUILD THE APP
-// ====================
 var app = builder.Build();
 
 // ====================
-// APPLY MIGRATIONS & SEED SHOP SETTINGS
+// APPLY MIGRATIONS & SEED SETTINGS
 // ====================
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    // Apply migrations
     context.Database.Migrate();
 
-    // Seed default shop settings
     if (!context.AppSettings.Any())
     {
         context.AppSettings.Add(new AppSettings
@@ -49,18 +42,14 @@ using (var scope = app.Services.CreateScope())
             Slogan = "Everything You Need for School & Office",
             LogoPath = "/images/TripleL.png"
         });
-
         context.SaveChanges();
     }
 }
 
 // ====================
-// ROTATIVA CONFIGURATION
+// ROTATIVA CONFIG
 // ====================
-RotativaConfiguration.Setup(
-    app.Environment.WebRootPath,
-    "Rotativa"
-);
+RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
 
 // ====================
 // MIDDLEWARE
@@ -74,22 +63,18 @@ if (!app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-    // 1️⃣ Create Admin role if it doesn't exist
+    // Create Admin role
     if (!await roleManager.RoleExistsAsync("Admin"))
-    {
         await roleManager.CreateAsync(new IdentityRole("Admin"));
-    }
 
-    // 2️⃣ Create default admin user
+    // Create default admin user
     string adminEmail = "admin@triplel.com";
     string adminPassword = "Lerato@91";
 
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
     if (adminUser == null)
     {
         adminUser = new IdentityUser
@@ -98,7 +83,6 @@ using (var scope = app.Services.CreateScope())
             Email = adminEmail,
             EmailConfirmed = true
         };
-
         await userManager.CreateAsync(adminUser, adminPassword);
         await userManager.AddToRoleAsync(adminUser, "Admin");
     }
@@ -108,13 +92,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// ✅ REQUIRED FOR LOGIN / ROLES
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ====================
-// ROUTES
-// ====================
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Stationery}/{action=Index}/{id?}"
