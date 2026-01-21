@@ -22,4 +22,8 @@
     <PackageReference Include="SFERA.Helpers.WEB.CORS" Version="1.2021.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Docs\images\" />
+  </ItemGroup>
+
 </Project>
