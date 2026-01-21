@@ -1,17 +1,41 @@
-﻿# StationeryMVC Entity Relationship Diagram (ERD)
+﻿# StationeryMVC – Entity Relationship Diagram
 
-## Entities and Relationships
-- **User**: Id, Name, Email, Role
-- **Item**: Id, Name, Category, Price, Stock
-- **Quotation**: Id, UserId, Date, TotalAmount
-- **QuotationItem**: Id, QuotationId, ItemId, Quantity, Price
-- **Order**: Id, UserId, Date, TotalAmount
+## 1. Entities
 
-### Relationships
-- A User can have many Quotations and Orders.
-- A Quotation can have many QuotationItems.
-- Each QuotationItem is linked to one Item.
+### StationeryItem
+- Id (Primary Key)
+- Name
+- Category
+- Quantity
+- Price
+- ImageUrl
+- QRCodeImagePath
 
-## Diagram
-![ERD Diagram](images/erd.png)
+### Quotation
+- Id (Primary Key)
+- CustomerName
+- Date
+- TotalAmount
 
+### QuotationItem
+- Id (Primary Key)
+- QuotationId (Foreign Key)
+- StationeryItemId (Foreign Key)
+- Quantity
+- UnitPrice
+
+### AppSettings
+- Id (Primary Key)
+- ShopName
+- Slogan
+- LogoPath
+
+## 2. Relationships
+
+- One Quotation can have many QuotationItems.
+- One StationeryItem can appear in many QuotationItems.
+- QuotationItem links Quotation and StationeryItem.
+
+## 3. ERD Representation
+
+Quotation 1 ---- * QuotationItem * ---- 1 StationeryItem

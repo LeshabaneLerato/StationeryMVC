@@ -1,29 +1,25 @@
-﻿# StationeryMVC Requirements
+﻿# StationeryMVC – System Requirements
 
-## Functional Requirements
-1. Users can browse stationery items by category.
-2. Users can search for items by name or description.
-3. Admin can add, update, or delete items.
-4. Admin can manage users and view orders.
-5. Users can place orders and receive confirmation.
-6. Dashboard displays key statistics:
-   - Total items in inventory
-   - Number of orders
-   - Most popular items
-7. Quotation table allows users/admin to:
-   - Create new quotations
-   - View and update existing quotations
-   - Export or print quotations
+## 1. System Overview
+StationeryMVC is a web-based application developed using ASP.NET Core MVC.
+The system is designed to manage stationery items, generate QR codes,
+create customer quotations, and manage shop settings.
 
-## Non-Functional Requirements
-1. The application should load pages in under 2 seconds.
-2. Secure user authentication and authorization.
-3. Responsive UI for desktop and mobile devices.
-4. Maintainable and well-documented code.
+## 2. Functional Requirements
 
-## Use Cases
-- **Add Item**: Admin adds a new stationery item.
-- **View Items**: User browses items by category.
-- **Place Order**: User places an order and receives confirmation.
-- **View Dashboard**: Admin or user sees inventory and order statistics.
-- **Manage Quotations**: Admin or user creates, updates, and exports quotations.
+1. The system shall allow users to add, edit, view, and delete stationery items.
+2. The system shall store stationery item details including name, category, quantity, price, image, and QR code.
+3. The system shall generate a QR code for each stationery item.
+4. The system shall allow users to create quotations for customers.
+5. The system shall calculate the total amount of a quotation.
+6. The system shall store quotation date and customer details.
+7. The system shall allow administrators to manage shop settings such as shop name, slogan, and logo.
+8. The system shall display a dashboard with summary information.
+
+## 3. Non-Functional Requirements
+
+1. The system shall be easy to use and user-friendly.
+2. The system shall validate all user input.
+3. The system shall store data securely using a database.
+4. The system shall provide acceptable response time.
+5. The system shall be maintainable and extensible.
